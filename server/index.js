@@ -45,7 +45,7 @@ app.get('/auth/callback', (req, res) => {
 
     var code = req.query.code;
 
-    const data = {
+    var data = {
         code: code,
         redirect_uri: "http://localhost:3000/auth/callback",
         grant_type: 'authorization_code'
