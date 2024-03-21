@@ -1,6 +1,6 @@
 const express = require('express');
-const request = require('request');
 const dotenv = require('dotenv');
+const axios = require('axios');
 
 const port = 5000
 
@@ -26,7 +26,7 @@ app.get('/auth/login', (req, res) => {
     var scope = "streaming \
                  user-read-email \
                  user-read-private \
-                 user-read-playback-state" 
+                 user-read-playback-state"
 
     var state = generateRandomString(16);
 
@@ -45,26 +45,22 @@ app.get('/auth/callback', (req, res) => {
 
     var code = req.query.code;
 
-    var authOptions = {
-        url: 'https://accounts.spotify.com/api/token',
-        form: {
-            code: code,
-            redirect_uri: "http://localhost:3000/auth/callback",
-            grant_type: 'authorization_code'
-        },
+    const data = {
+        code: code,
+        redirect_uri: "http://localhost:3000/auth/callback",
+        grant_type: 'authorization_code'
+    }
+
+    axios.post('https://accounts.spotify.com/api/token', data, {
         headers: {
             'Authorization': 'Basic ' + (Buffer.from(spotify_client_id + ':' + spotify_client_secret).toString('base64')),
             'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        json: true
-    };
-
-    request.post(authOptions, function (error, response, body) {
-        if (!error && response.statusCode === 200) {
-            access_token = body.access_token;
-            res.redirect('/')
         }
-    });
+    }).then((response) => {
+        access_token = response.data.access_token;
+        res.redirect('/')
+    })
+
 });
 
 app.get('/auth/token', (req, res) => {
