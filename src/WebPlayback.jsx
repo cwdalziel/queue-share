@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import SearchBar from './SearchBar'
 
 const track = {
     name: "",
@@ -19,6 +20,7 @@ function WebPlayback(props) {
     const [is_active, setActive] = useState(false);
     const [player, setPlayer] = useState(undefined);
     const [current_track, setTrack] = useState(track);
+    const [queue, setQueue] = useState([]);
 
     useEffect(() => {
 
@@ -41,14 +43,15 @@ function WebPlayback(props) {
             player.addListener('ready', ({ device_id }) => {
                 console.log('Ready with Device ID', device_id);
 
-                const data = {
-                    device_ids: [device_id]
+                var data = {
+                    device_ids: [device_id],
+                    play: true
                 }
 
                 axios.put('https://api.spotify.com/v1/me/player', data, {
                     headers: { Authorization: `Bearer ${props.token}` }
                 });
-                
+
             });
 
             player.addListener('not_ready', ({ device_id }) => {
@@ -69,8 +72,12 @@ function WebPlayback(props) {
 
         };
 
-
     }, []);
+
+    const queueSong = (song) => {
+        setQueue([...queue, song])
+        console.log(queue)
+    }
 
     if (!is_active || !current_track) {
         return (
@@ -104,6 +111,15 @@ function WebPlayback(props) {
                             <button className="btn-spotify" onClick={() => { player.nextTrack() }} >
                                 &gt;&gt;
                             </button>
+
+                            <ol>
+                                {queue.map((song) => (
+                                    <li>{song.artists.map((artist) => (artist.name + ' '))} - {song.name}</li>
+                                ))}
+                            </ol>
+
+                            <SearchBar token={props.token} queueSong={queueSong} />
+
                         </div>
                     </div>
                 </div>
