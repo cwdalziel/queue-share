@@ -29,6 +29,8 @@ function SearchBar(props) {
             }).then((response) => {
                 setResults(response.data.tracks.items)
             })
+        } else {
+            setResults([])
         }
     }
 

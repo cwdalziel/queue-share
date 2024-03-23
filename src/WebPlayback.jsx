@@ -21,6 +21,11 @@ function WebPlayback(props) {
     const [player, setPlayer] = useState(undefined);
     const [current_track, setTrack] = useState(track);
     const [queue, setQueue] = useState([]);
+    const [playlistId, setPlaylistID] = useState('');
+
+    const instance = axios.create({
+        headers: { 'Authorization': `Bearer ${props.token}` }
+    })
 
     useEffect(() => {
 
@@ -40,17 +45,15 @@ function WebPlayback(props) {
 
             setPlayer(player);
 
+            initPlaylist()
+
             player.addListener('ready', ({ device_id }) => {
                 console.log('Ready with Device ID', device_id);
 
-                var data = {
+                instance.put('https://api.spotify.com/v1/me/player', {
                     device_ids: [device_id],
                     play: true
-                }
-
-                axios.put('https://api.spotify.com/v1/me/player', data, {
-                    headers: { Authorization: `Bearer ${props.token}` }
-                });
+                })
 
             });
 
@@ -74,20 +77,42 @@ function WebPlayback(props) {
 
     }, []);
 
+    const initPlaylist = () => {
+        instance.post('https://api.spotify.com/v1/users/3lr11r0n9v3lbpomp9fa44436/playlists', {
+            name: 'Queue Share Playlist',
+            description: 'Playlist used for streaming through Queue Share',
+            public: false
+        }).then((response) => {
+            setPlaylistID(response.id)
+            console.log('Playlist ID', response.id)
+        })
+    }
+
     const queueSong = (song) => {
         setQueue([...queue, song])
         console.log(queue)
     }
 
-    if (!is_active || !current_track) {
-        return (
-            <>
+    if (!is_active || !current_track || playlistId === '') {
+        if (playlistId === '') {
+            return (
                 <div className="container">
                     <div className="main-wrapper">
-                        <b> Instance not active. Playback will transfer automatically. If playback does not transfer automatically, transfer your playback using your Spotify app. </b>
+                        <div>The Queue Share playlist for this instance has not yet been created. Playlist will be created automatically. If playlist is not created automatically, click this button: </div>
+                        <button onClick={() => { initPlaylist() }} > Create Playlist </button>
                     </div>
                 </div>
-            </>)
+            )
+        } else {
+            return (
+                <>
+                    <div className="container">
+                        <div className="main-wrapper">
+                            <b> Instance not active. Playback will transfer automatically. If playback does not transfer automatically, transfer your playback using your Spotify app. </b>
+                        </div>
+                    </div>
+                </>)
+        }
     } else {
         return (
             <>
