@@ -46,8 +46,8 @@ function SearchBar(props) {
                 <input type='text' placeholder='Search for Tracks' onChange={handleChange} value={searchInput} onKeyDown={handleKeyDown} />
                 <button onClick={() => { search() }} > Search </button>
             </div>
-            {results.map((entry) => (
-                <div>
+            {results.map((entry, index) => (
+                <div key={index}>
                     <div>{entry.artists.map((artist) => (artist.name + ' '))} - {entry.name} </div>
                     <button onClick={() => { select(entry) }} > Select </button>
                 </div>
