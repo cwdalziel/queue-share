@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import loadscript from 'load-script'
 import SearchBar from './SearchBar'
+import './App.css';
 
 const track = {
     name: "",
@@ -22,13 +24,15 @@ function WebPlayback(props) {
 
     const [is_paused, setPaused] = useState(false);
     const [is_active, setActive] = useState(false);
-    const [player, setPlayer] = useState();
+    const [spotPlayer, setSpotPlayer] = useState();
+    const [SCPlayer, setSCPlayer] = useState();
     const [current_track, setTrack] = useState(track);
     const [queue, setQueue] = useState([]);
     const [queueIndex, setQueueIndex] = useState(0);
     const [spotState, setSpotState] = useState(sampleSpotState);
     const prevSpotState = useRef(sampleSpotState)
     const prevQueue = useRef([])
+    const iframeRef = useRef('')
 
     const instance = axios.create({
         headers: { 'Authorization': `Bearer ${props.token}` }
@@ -78,7 +82,7 @@ function WebPlayback(props) {
                 volume: 0.5
             });
 
-            setPlayer(player);
+            setSpotPlayer(player);
 
             player.addListener('ready', ({ device_id }) => {
                 console.log('Ready with Device ID', device_id);
@@ -118,6 +122,24 @@ function WebPlayback(props) {
 
     }, []);
 
+    useEffect(() => {
+
+        if (iframeRef.current !== '') {
+
+            loadscript("https://w.soundcloud.com/player/api.js", () => {
+
+                const player = window.SC.Widget(iframeRef.current)
+                setSCPlayer(player)
+
+                player.bind( window.SC.Widget.Events.READY , () => {
+                    player.play()
+                })
+
+            })
+        }
+
+    }, [iframeRef.current])
+
     if (!is_active || !current_track) {
         return (
             <>
@@ -139,11 +161,11 @@ function WebPlayback(props) {
                             <div className="now-playing__name">{current_track.name}</div>
                             <div className="now-playing__artist">{current_track.artists[0].name}</div>
 
-                            <button className="btn-spotify" onClick={() => { player.togglePlay() }} >
+                            <button className="btn-spotify" onClick={() => { spotPlayer.togglePlay(); SCPlayer.toggle() }} >
                                 {is_paused ? "PLAY" : "PAUSE"}
                             </button>
 
-                            <button className="btn-spotify" onClick={() => { player.nextTrack() }} >
+                            <button className="btn-spotify" onClick={() => { spotPlayer.nextTrack() }} >
                                 &gt;&gt;
                             </button>
 
@@ -154,6 +176,8 @@ function WebPlayback(props) {
                             </ol>
 
                             <SearchBar token={props.token} queueSong={queueSong} />
+
+                            <iframe ref={iframeRef} className="hidde" title="sound-cloud-player" id="sound-cloud-player" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1802567073&auto_play=false"/>
 
                         </div>
                     </div>
