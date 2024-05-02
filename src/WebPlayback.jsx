@@ -138,7 +138,7 @@ function WebPlayback(props) {
             })
         }
 
-    }, [iframeRef.current])
+    }, [])
 
     if (!is_active || !current_track) {
         return (

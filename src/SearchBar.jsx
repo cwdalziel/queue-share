@@ -32,10 +32,13 @@ function SearchBar(props) {
                     setResults(response.data.tracks.items)
                 })
             } else if (checked.value === 'SoundCloud') {
-                axios.get('https://api-v2.soundcloud.com/search?q=' + searchInput + '&variant_ids=&facet=model&user_id=180603-220003-340773-823070&client_id=13dlrtjfx7d3OLEsFzbjJztO2G0U38DK&limit=20&offset=0&linked_partitioning=1&app_version=1714468731&app_locale=en', {
+                axios.get('https://api.soundcloud.com/tracks', {
+                    params: {
+                        q: searchInput,
+                        limit: 10
+                    },
                     headers: {
-                        Origin: 'https://soundcloud.com',
-                        Referer: 'https://soundcloud.com/'
+                        Authorization: 'OAuth ' + window.env.SOUNDCLOUD_AUTH_TOKEN
                     }
                 }).then((response) => {
                     console.log(response)
